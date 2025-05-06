@@ -1,0 +1,549 @@
+#pragma version 10
+#pragma typetrack false
+
+// algopy.arc4.ARC4Contract.approval_program() -> uint64:
+main:
+    intcblock 1 0 4 1000
+    bytecblock "assetid" "unitaryprice"
+    // smart_contracts/algoxange/contract.py:5
+    // class Algoxange(ARC4Contract):
+    txn NumAppArgs
+    bz main_after_if_else@13
+    pushbytess 0x878cbb3d 0x0c2ebe95 0xcc760037 0x1574535a 0xad6bdf0c 0x958d3df9 0x33b3499e // method "create_application(asset,uint64)void", method "update_asset_id(asset)void", method "set_price(uint64)void", method "opt_in_to_asset(pay)void", method "debug_buy_check(pay)uint64", method "buy(pay)void", method "delete_application()void"
+    txna ApplicationArgs 0
+    match main_create_application_route@3 main_update_asset_id_route@4 main_set_price_route@5 main_opt_in_to_asset_route@6 main_debug_buy_check_route@7 main_buy_route@8 main_delete_application_route@9
+
+main_after_if_else@13:
+    // smart_contracts/algoxange/contract.py:5
+    // class Algoxange(ARC4Contract):
+    intc_1 // 0
+    return
+
+main_delete_application_route@9:
+    // smart_contracts/algoxange/contract.py:66
+    // @abimethod(allow_actions=["DeleteApplication"])
+    txn OnCompletion
+    pushint 5 // DeleteApplication
+    ==
+    assert // OnCompletion is not DeleteApplication
+    txn ApplicationID
+    assert // can only call when not creating
+    callsub delete_application
+    intc_0 // 1
+    return
+
+main_buy_route@8:
+    // smart_contracts/algoxange/contract.py:51-52
+    // # buy the asset
+    // @abimethod()
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/algoxange/contract.py:5
+    // class Algoxange(ARC4Contract):
+    txn GroupIndex
+    intc_0 // 1
+    -
+    dup
+    gtxns TypeEnum
+    intc_0 // pay
+    ==
+    assert // transaction type is pay
+    // smart_contracts/algoxange/contract.py:51-52
+    // # buy the asset
+    // @abimethod()
+    callsub buy
+    intc_0 // 1
+    return
+
+main_debug_buy_check_route@7:
+    // smart_contracts/algoxange/contract.py:41
+    // @abimethod()
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/algoxange/contract.py:5
+    // class Algoxange(ARC4Contract):
+    txn GroupIndex
+    intc_0 // 1
+    -
+    dup
+    gtxns TypeEnum
+    intc_0 // pay
+    ==
+    assert // transaction type is pay
+    // smart_contracts/algoxange/contract.py:41
+    // @abimethod()
+    callsub debug_buy_check
+    itob
+    pushbytes 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+main_opt_in_to_asset_route@6:
+    // smart_contracts/algoxange/contract.py:25-26
+    // # opt in to the asset that will be sold
+    // @abimethod()
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/algoxange/contract.py:5
+    // class Algoxange(ARC4Contract):
+    txn GroupIndex
+    intc_0 // 1
+    -
+    dup
+    gtxns TypeEnum
+    intc_0 // pay
+    ==
+    assert // transaction type is pay
+    // smart_contracts/algoxange/contract.py:25-26
+    // # opt in to the asset that will be sold
+    // @abimethod()
+    callsub opt_in_to_asset
+    intc_0 // 1
+    return
+
+main_set_price_route@5:
+    // smart_contracts/algoxange/contract.py:19-20
+    // #update the listing price
+    // @abimethod()
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/algoxange/contract.py:5
+    // class Algoxange(ARC4Contract):
+    txna ApplicationArgs 1
+    btoi
+    // smart_contracts/algoxange/contract.py:19-20
+    // #update the listing price
+    // @abimethod()
+    callsub set_price
+    intc_0 // 1
+    return
+
+main_update_asset_id_route@4:
+    // smart_contracts/algoxange/contract.py:14
+    // @abimethod()
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    assert // can only call when not creating
+    // smart_contracts/algoxange/contract.py:5
+    // class Algoxange(ARC4Contract):
+    txna ApplicationArgs 1
+    btoi
+    txnas Assets
+    // smart_contracts/algoxange/contract.py:14
+    // @abimethod()
+    callsub update_asset_id
+    intc_0 // 1
+    return
+
+main_create_application_route@3:
+    // smart_contracts/algoxange/contract.py:9
+    // @abimethod(allow_actions=["NoOp"], create="require")
+    txn OnCompletion
+    !
+    assert // OnCompletion is not NoOp
+    txn ApplicationID
+    !
+    assert // can only call when creating
+    // smart_contracts/algoxange/contract.py:5
+    // class Algoxange(ARC4Contract):
+    txna ApplicationArgs 1
+    btoi
+    txnas Assets
+    txna ApplicationArgs 2
+    btoi
+    // smart_contracts/algoxange/contract.py:9
+    // @abimethod(allow_actions=["NoOp"], create="require")
+    callsub create_application
+    intc_0 // 1
+    return
+
+
+// smart_contracts.algoxange.contract.Algoxange.create_application(asset_id: uint64, unitary_price: uint64) -> void:
+create_application:
+    // smart_contracts/algoxange/contract.py:9-10
+    // @abimethod(allow_actions=["NoOp"], create="require")
+    // def create_application(self, asset_id: Asset, unitary_price: UInt64) -> None:
+    proto 2 0
+    // smart_contracts/algoxange/contract.py:11
+    // self.assetid = asset_id.id
+    bytec_0 // "assetid"
+    frame_dig -2
+    app_global_put
+    // smart_contracts/algoxange/contract.py:12
+    // self.unitaryprice = unitary_price
+    bytec_1 // "unitaryprice"
+    frame_dig -1
+    app_global_put
+    retsub
+
+
+// smart_contracts.algoxange.contract.Algoxange.update_asset_id(asset_id: uint64) -> void:
+update_asset_id:
+    // smart_contracts/algoxange/contract.py:14-15
+    // @abimethod()
+    // def update_asset_id(self, asset_id: Asset) -> None:
+    proto 1 0
+    // smart_contracts/algoxange/contract.py:16
+    // assert Txn.sender == Global.creator_address
+    txn Sender
+    global CreatorAddress
+    ==
+    assert
+    // smart_contracts/algoxange/contract.py:17
+    // self.assetid = asset_id.id
+    bytec_0 // "assetid"
+    frame_dig -1
+    app_global_put
+    retsub
+
+
+// smart_contracts.algoxange.contract.Algoxange.set_price(unitary_price: uint64) -> void:
+set_price:
+    // smart_contracts/algoxange/contract.py:19-21
+    // #update the listing price
+    // @abimethod()
+    // def set_price(self, unitary_price: UInt64) -> None:
+    proto 1 0
+    // smart_contracts/algoxange/contract.py:22
+    // assert Txn.sender == Global.creator_address
+    txn Sender
+    global CreatorAddress
+    ==
+    assert
+    // smart_contracts/algoxange/contract.py:23
+    // self.unitaryprice = unitary_price
+    bytec_1 // "unitaryprice"
+    frame_dig -1
+    app_global_put
+    retsub
+
+
+// smart_contracts.algoxange.contract.Algoxange.opt_in_to_asset(mbrpay: uint64) -> void:
+opt_in_to_asset:
+    // smart_contracts/algoxange/contract.py:25-27
+    // # opt in to the asset that will be sold
+    // @abimethod()
+    // def opt_in_to_asset(self, mbrpay: gtxn.PaymentTransaction) -> None:
+    proto 1 0
+    // smart_contracts/algoxange/contract.py:28
+    // assert Txn.sender == Global.creator_address
+    txn Sender
+    global CreatorAddress
+    ==
+    assert
+    // smart_contracts/algoxange/contract.py:29
+    // assert not Global.current_application_address.is_opted_in(Asset(self.assetid))
+    global CurrentApplicationAddress
+    intc_1 // 0
+    bytec_0 // "assetid"
+    app_global_get_ex
+    assert // check self.assetid exists
+    asset_holding_get AssetBalance
+    bury 1
+    !
+    assert
+    // smart_contracts/algoxange/contract.py:31
+    // assert mbrpay.receiver == Global.current_application_address
+    frame_dig -1
+    gtxns Receiver
+    global CurrentApplicationAddress
+    ==
+    assert
+    // smart_contracts/algoxange/contract.py:33
+    // assert mbrpay.amount == Global.min_balance + Global.asset_opt_in_min_balance
+    frame_dig -1
+    gtxns Amount
+    global MinBalance
+    global AssetOptInMinBalance
+    +
+    ==
+    assert
+    // smart_contracts/algoxange/contract.py:35-39
+    // itxn.AssetTransfer(
+    //     xfer_asset= self.assetid,
+    //     asset_receiver= Global.current_application_address,
+    //     asset_amount= 0,
+    // ).submit()
+    itxn_begin
+    // smart_contracts/algoxange/contract.py:36
+    // xfer_asset= self.assetid,
+    intc_1 // 0
+    bytec_0 // "assetid"
+    app_global_get_ex
+    assert // check self.assetid exists
+    // smart_contracts/algoxange/contract.py:37
+    // asset_receiver= Global.current_application_address,
+    global CurrentApplicationAddress
+    // smart_contracts/algoxange/contract.py:38
+    // asset_amount= 0,
+    intc_1 // 0
+    itxn_field AssetAmount
+    itxn_field AssetReceiver
+    itxn_field XferAsset
+    // smart_contracts/algoxange/contract.py:35
+    // itxn.AssetTransfer(
+    intc_2 // axfer
+    itxn_field TypeEnum
+    intc_1 // 0
+    itxn_field Fee
+    // smart_contracts/algoxange/contract.py:35-39
+    // itxn.AssetTransfer(
+    //     xfer_asset= self.assetid,
+    //     asset_receiver= Global.current_application_address,
+    //     asset_amount= 0,
+    // ).submit()
+    itxn_submit
+    retsub
+
+
+// smart_contracts.algoxange.contract.Algoxange.debug_buy_check(buyerTxn: uint64) -> uint64:
+debug_buy_check:
+    // smart_contracts/algoxange/contract.py:41-42
+    // @abimethod()
+    // def debug_buy_check(self, buyerTxn: gtxn.PaymentTransaction) -> UInt64:
+    proto 1 1
+    // smart_contracts/algoxange/contract.py:43
+    // if buyerTxn.sender != Txn.sender:
+    frame_dig -1
+    gtxns Sender
+    txn Sender
+    !=
+    bz debug_buy_check_after_if_else@2
+    // smart_contracts/algoxange/contract.py:44
+    // return UInt64(1)
+    intc_0 // 1
+    retsub
+
+debug_buy_check_after_if_else@2:
+    // smart_contracts/algoxange/contract.py:45
+    // if buyerTxn.receiver != Global.current_application_address:
+    frame_dig -1
+    gtxns Receiver
+    global CurrentApplicationAddress
+    !=
+    bz debug_buy_check_after_if_else@4
+    // smart_contracts/algoxange/contract.py:46
+    // return UInt64(2)
+    pushint 2 // 2
+    retsub
+
+debug_buy_check_after_if_else@4:
+    // smart_contracts/algoxange/contract.py:47
+    // if buyerTxn.amount != self.unitaryprice:
+    frame_dig -1
+    gtxns Amount
+    intc_1 // 0
+    bytec_1 // "unitaryprice"
+    app_global_get_ex
+    assert // check self.unitaryprice exists
+    !=
+    bz debug_buy_check_after_if_else@6
+    // smart_contracts/algoxange/contract.py:48
+    // return UInt64(3)
+    pushint 3 // 3
+    retsub
+
+debug_buy_check_after_if_else@6:
+    // smart_contracts/algoxange/contract.py:49
+    // return UInt64(0)  # All good
+    intc_1 // 0
+    retsub
+
+
+// smart_contracts.algoxange.contract.Algoxange.buy(buyerTxn: uint64) -> void:
+buy:
+    // smart_contracts/algoxange/contract.py:51-53
+    // # buy the asset
+    // @abimethod()
+    // def buy(self, buyerTxn: gtxn.PaymentTransaction) -> None:
+    proto 1 0
+    // smart_contracts/algoxange/contract.py:55
+    // assert(buyerTxn.sender == Txn.sender )
+    frame_dig -1
+    gtxns Sender
+    txn Sender
+    ==
+    assert
+    // smart_contracts/algoxange/contract.py:56
+    // assert(buyerTxn.receiver == Global.current_application_address )
+    frame_dig -1
+    gtxns Receiver
+    global CurrentApplicationAddress
+    ==
+    assert
+    // smart_contracts/algoxange/contract.py:57
+    // assert(buyerTxn.amount == self.unitaryprice )
+    frame_dig -1
+    gtxns Amount
+    intc_1 // 0
+    bytec_1 // "unitaryprice"
+    app_global_get_ex
+    assert // check self.unitaryprice exists
+    ==
+    assert
+    // smart_contracts/algoxange/contract.py:59-64
+    // # Perform asset transfer
+    //     itxn.AssetTransfer(
+    //         xfer_asset=self.assetid,
+    //         asset_receiver=Txn.sender,
+    //         asset_amount=1,
+    //     ).submit()
+    itxn_begin
+    // smart_contracts/algoxange/contract.py:61
+    // xfer_asset=self.assetid,
+    intc_1 // 0
+    bytec_0 // "assetid"
+    app_global_get_ex
+    assert // check self.assetid exists
+    // smart_contracts/algoxange/contract.py:62
+    // asset_receiver=Txn.sender,
+    txn Sender
+    // smart_contracts/algoxange/contract.py:63
+    // asset_amount=1,
+    intc_0 // 1
+    itxn_field AssetAmount
+    itxn_field AssetReceiver
+    itxn_field XferAsset
+    // smart_contracts/algoxange/contract.py:59-60
+    // # Perform asset transfer
+    //     itxn.AssetTransfer(
+    intc_2 // axfer
+    itxn_field TypeEnum
+    intc_1 // 0
+    itxn_field Fee
+    // smart_contracts/algoxange/contract.py:59-64
+    // # Perform asset transfer
+    //     itxn.AssetTransfer(
+    //         xfer_asset=self.assetid,
+    //         asset_receiver=Txn.sender,
+    //         asset_amount=1,
+    //     ).submit()
+    itxn_submit
+    retsub
+
+
+// smart_contracts.algoxange.contract.Algoxange.delete_application() -> void:
+delete_application:
+    // smart_contracts/algoxange/contract.py:69
+    // assert Txn.sender == Global.creator_address
+    txn Sender
+    global CreatorAddress
+    ==
+    assert
+    // smart_contracts/algoxange/contract.py:71-81
+    // # Send all the unsold assets to the creator
+    // itxn.AssetTransfer(
+    //     xfer_asset=self.assetid,
+    //     asset_receiver=Global.creator_address,
+    //     # The amount is 0, but the asset_close_to field is set
+    //     # This means that ALL assets are being sent to the asset_close_to address
+    //     asset_amount=0,
+    //     # Close the asset to unlock the 0.1 ALGO that was locked in opt_in_to_asset
+    //     asset_close_to=Global.creator_address,
+    //     fee=1_000,
+    // ).submit()
+    itxn_begin
+    // smart_contracts/algoxange/contract.py:73
+    // xfer_asset=self.assetid,
+    intc_1 // 0
+    bytec_0 // "assetid"
+    app_global_get_ex
+    assert // check self.assetid exists
+    // smart_contracts/algoxange/contract.py:74
+    // asset_receiver=Global.creator_address,
+    global CreatorAddress
+    // smart_contracts/algoxange/contract.py:78-79
+    // # Close the asset to unlock the 0.1 ALGO that was locked in opt_in_to_asset
+    // asset_close_to=Global.creator_address,
+    dup
+    itxn_field AssetCloseTo
+    // smart_contracts/algoxange/contract.py:75-77
+    // # The amount is 0, but the asset_close_to field is set
+    // # This means that ALL assets are being sent to the asset_close_to address
+    // asset_amount=0,
+    intc_1 // 0
+    itxn_field AssetAmount
+    itxn_field AssetReceiver
+    itxn_field XferAsset
+    // smart_contracts/algoxange/contract.py:71-72
+    // # Send all the unsold assets to the creator
+    // itxn.AssetTransfer(
+    intc_2 // axfer
+    itxn_field TypeEnum
+    // smart_contracts/algoxange/contract.py:80
+    // fee=1_000,
+    intc_3 // 1000
+    itxn_field Fee
+    // smart_contracts/algoxange/contract.py:71-81
+    // # Send all the unsold assets to the creator
+    // itxn.AssetTransfer(
+    //     xfer_asset=self.assetid,
+    //     asset_receiver=Global.creator_address,
+    //     # The amount is 0, but the asset_close_to field is set
+    //     # This means that ALL assets are being sent to the asset_close_to address
+    //     asset_amount=0,
+    //     # Close the asset to unlock the 0.1 ALGO that was locked in opt_in_to_asset
+    //     asset_close_to=Global.creator_address,
+    //     fee=1_000,
+    // ).submit()
+    itxn_submit
+    // smart_contracts/algoxange/contract.py:83-90
+    // # Send the remaining balance to the creator
+    // itxn.Payment(
+    //     receiver=Global.creator_address,
+    //     amount=0,
+    //     # Close the account to get back ALL the ALGO in the account
+    //     close_remainder_to=Global.creator_address,
+    //     fee=1_000,
+    // ).submit()
+    itxn_begin
+    // smart_contracts/algoxange/contract.py:85
+    // receiver=Global.creator_address,
+    global CreatorAddress
+    // smart_contracts/algoxange/contract.py:87-88
+    // # Close the account to get back ALL the ALGO in the account
+    // close_remainder_to=Global.creator_address,
+    dup
+    itxn_field CloseRemainderTo
+    // smart_contracts/algoxange/contract.py:86
+    // amount=0,
+    intc_1 // 0
+    itxn_field Amount
+    itxn_field Receiver
+    // smart_contracts/algoxange/contract.py:83-84
+    // # Send the remaining balance to the creator
+    // itxn.Payment(
+    intc_0 // pay
+    itxn_field TypeEnum
+    // smart_contracts/algoxange/contract.py:89
+    // fee=1_000,
+    intc_3 // 1000
+    itxn_field Fee
+    // smart_contracts/algoxange/contract.py:83-90
+    // # Send the remaining balance to the creator
+    // itxn.Payment(
+    //     receiver=Global.creator_address,
+    //     amount=0,
+    //     # Close the account to get back ALL the ALGO in the account
+    //     close_remainder_to=Global.creator_address,
+    //     fee=1_000,
+    // ).submit()
+    itxn_submit
+    retsub
