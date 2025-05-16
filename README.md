@@ -122,13 +122,6 @@ This project is open-source and available under the MIT License.
 
 ---
 
-## ✨ Authors
-
-- **Srikarnivas** – Full-stack Developer, AlgoRack Creator  
-- Connect: [srikarnivas.24@gmail.com](mailto:srikarnivas.24@gmail.com)
-
----
-
 ## 💡 Inspiration
 
 This project combines the speed of Algorand with the rising demand for digital collectibles and eBooks, enabling authors to earn fairly and transparently through decentralized distribution.
